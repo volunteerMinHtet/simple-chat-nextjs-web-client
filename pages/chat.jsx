@@ -162,7 +162,7 @@ export default function Chat() {
             <div className={styles.messageBox}></div>
             <button onClick={() => startChat()}>Start Chat</button>
 
-            <video ref={self} autoPlay></video>
+            <video ref={selfRef} autoPlay></video>
             {/* <audio ref={selfRef} autoPlay></audio> */}
         </div>
     );
