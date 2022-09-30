@@ -7,11 +7,16 @@ const MESSAGE_TYPE = {
 };
 
 export default function Chat() {
-    const selfAudioRef = useRef({ srcObject: null });
-    const remoteAudioRef = useRef({ srcObject: null });
+    // const selfRef = useRef({ srcObject: null });
+    // const selfVideoRef = useRef({ srcObject: null });
+    // const remoteRef = useRef({ srcObject: null });
+    // const remoteVideoRef = useRef({ srcObject: null });
 
-    console.log("self", selfAudioRef.current);
-    console.log("remote", remoteAudioRef.current);
+    const selfRef = useRef({ srcObject: null });
+    const remoteRef = useRef({ srcObject: null });
+
+    console.log("self", selfRef.current);
+    console.log("remote", remoteRef.current);
 
     async function sendSignal(signaling, message, retries = 3) {
         if (!retries > 0) {
@@ -34,7 +39,7 @@ export default function Chat() {
         try {
             const stream = await window.navigator.mediaDevices.getUserMedia({
                 audio: true,
-                video: false,
+                video: true,
             });
             const signaling = new WebSocket("wss://penguin-chat.onrender.com");
             const peerConnection = createPeerConnection(signaling);
@@ -44,7 +49,7 @@ export default function Chat() {
             stream
                 .getTracks()
                 .forEach((track) => peerConnection.addTrack(track, stream));
-            selfAudioRef.current.srcObject = stream;
+            selfRef.current.srcObject = stream;
         } catch (e) {
             console.error(e);
         }
@@ -75,8 +80,8 @@ export default function Chat() {
         };
 
         peerConnection.ontrack = (event) => {
-            if (!remoteAudioRef.current.srcObject) {
-                remoteAudioRef.current.srcObject = event.streams[0];
+            if (!remoteRef.current.srcObject) {
+                remoteRef.current.srcObject = event.streams[0];
             }
         };
 
@@ -157,8 +162,8 @@ export default function Chat() {
             <div className={styles.messageBox}></div>
             <button onClick={() => startChat()}>Start Chat</button>
 
-            {/* <video srcO autoPlay></video> */}
-            <audio ref={selfAudioRef} autoPlay></audio>
+            <video ref={self} autoPlay></video>
+            {/* <audio ref={selfRef} autoPlay></audio> */}
         </div>
     );
 }
