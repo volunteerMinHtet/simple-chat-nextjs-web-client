@@ -39,10 +39,10 @@ export default function Chat() {
         try {
             const stream = await window.navigator.mediaDevices.getUserMedia({
                 audio: true,
-                video: false,
+                video: true,
             });
-            // const signaling = new WebSocket("wss://penguin-chat.onrender.com");
-            const signaling = new WebSocket("ws://localhost:8080");
+            const signaling = new WebSocket("wss://penguin-chat.onrender.com");
+            // const signaling = new WebSocket("ws://localhost:8080");
             const peerConnection = createPeerConnection(signaling);
 
             // console.log(peerConnection);
