@@ -15,8 +15,8 @@ export default function Chat() {
     const selfRef = useRef({ srcObject: null });
     const remoteRef = useRef({ srcObject: null });
 
-    console.log("self", selfRef.current);
-    console.log("remote", remoteRef.current);
+    // console.log("self", selfRef.current);
+    // console.log("remote", remoteRef.current);
 
     async function sendSignal(signaling, message, retries = 3) {
         if (!retries > 0) {
@@ -39,10 +39,13 @@ export default function Chat() {
         try {
             const stream = await window.navigator.mediaDevices.getUserMedia({
                 audio: true,
-                video: true,
+                video: false,
             });
-            const signaling = new WebSocket("wss://penguin-chat.onrender.com");
+            // const signaling = new WebSocket("wss://penguin-chat.onrender.com");
+            const signaling = new WebSocket("ws://localhost:8080");
             const peerConnection = createPeerConnection(signaling);
+
+            // console.log(peerConnection);
 
             addMessageSignalHandler(signaling, peerConnection);
 
@@ -57,20 +60,17 @@ export default function Chat() {
 
     function createPeerConnection(signaling) {
         const peerConnection = new RTCPeerConnection({
-            iceServers: [{ urls: "stun:stun.l.test.com:69" }],
+            iceServers: [{ urls: "stun:openrelay.metered.ca:80" }],
         });
 
-        peerConnection.onnegotiationneeded = async () =>
+        peerConnection.onnegotiationneeded = async () => {
+            console.log("onnegotiationneeded");
             await createAndSendOffer(signaling, peerConnection);
+        };
 
         peerConnection.onicecandidate = (iceEvent) => {
+            console.log("onicecandidate", iceEvent);
             if (iceEvent && iceEvent.candidate) {
-                // signaling.send(
-                //     JSON.stringify({
-                //         message_type: MESSAGE_TYPE.CANDIDATE,
-                //         content: iceEvent.candidate,
-                //     })
-                // );
                 const message = JSON.stringify({
                     message_type: MESSAGE_TYPE.CANDIDATE,
                     content: iceEvent.candidate,
@@ -80,6 +80,8 @@ export default function Chat() {
         };
 
         peerConnection.ontrack = (event) => {
+            console.log("ontrack", event);
+            console.log(remoteRef);
             if (!remoteRef.current.srcObject) {
                 remoteRef.current.srcObject = event.streams[0];
             }
@@ -92,10 +94,6 @@ export default function Chat() {
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
 
-        // console.log(signaling);
-        // signaling.send(
-        //     JSON.stringify({ message_type: MESSAGE_TYPE.SDP, content: offer })
-        // );
         const message = JSON.stringify({
             message_type: MESSAGE_TYPE.SDP,
             content: offer,
@@ -106,7 +104,8 @@ export default function Chat() {
     function addMessageSignalHandler(signaling, peerConnection) {
         signaling.onmessage = async (message) => {
             const data = JSON.parse(message.data);
-
+            console.log("message_data", data);
+            console.log("message type", data?.message_type);
             if (!data) return;
 
             const { message_type, content } = data;
@@ -120,12 +119,6 @@ export default function Chat() {
                         const answer = await peerConnection.createAnswer();
                         await peerConnection.setLocalDescription(answer);
 
-                        // signaling.send(
-                        //     JSON.stringify({
-                        //         message_type: MESSAGE_TYPE.SDP,
-                        //         content: answer,
-                        //     })
-                        // );
                         const messageSignal = JSON.stringify({
                             message_type: MESSAGE_TYPE.SDP,
                             content: answer,
@@ -159,13 +152,18 @@ export default function Chat() {
 
     return (
         <div className={styles.container}>
-            <div className={styles.messageBox}></div>
+            {/* <div className={styles.messageBox}></div> */}
             <button onClick={() => startChat()}>Start Chat</button>
 
-            <video ref={selfRef} autoPlay></video>
-            <video ref={remoteRef} autoPlay></video>
-            {/* <audio ref={selfRef} autoPlay></audio>
-            <audio ref={remoteRef} autoPlay></audio> */}
+            <video className={styles.selfVideo} ref={selfRef} autoPlay></video>
+            <video
+                className={styles.remoteVideo}
+                ref={remoteRef}
+                autoPlay
+            ></video>
+
+            {/* <audio ref={selfRef} controls autoPlay></audio>
+            <audio ref={remoteRef} controls autoPlay></audio> */}
         </div>
     );
 }
