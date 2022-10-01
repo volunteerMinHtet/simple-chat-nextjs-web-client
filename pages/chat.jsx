@@ -163,7 +163,9 @@ export default function Chat() {
             <button onClick={() => startChat()}>Start Chat</button>
 
             <video ref={selfRef} autoPlay></video>
-            {/* <audio ref={selfRef} autoPlay></audio> */}
+            <video ref={remoteRef} autoPlay></video>
+            {/* <audio ref={selfRef} autoPlay></audio>
+            <audio ref={remoteRef} autoPlay></audio> */}
         </div>
     );
 }
