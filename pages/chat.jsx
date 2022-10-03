@@ -7,16 +7,8 @@ const MESSAGE_TYPE = {
 };
 
 export default function Chat() {
-    // const selfRef = useRef({ srcObject: null });
-    // const selfVideoRef = useRef({ srcObject: null });
-    // const remoteRef = useRef({ srcObject: null });
-    // const remoteVideoRef = useRef({ srcObject: null });
-
     const selfRef = useRef({ srcObject: null });
     const remoteRef = useRef({ srcObject: null });
-
-    // console.log("self", selfRef.current);
-    // console.log("remote", remoteRef.current);
 
     async function sendSignal(signaling, message, retries = 3) {
         if (!retries > 0) {
@@ -45,8 +37,6 @@ export default function Chat() {
             // const signaling = new WebSocket("ws://localhost:8080");
             const peerConnection = createPeerConnection(signaling);
 
-            // console.log(peerConnection);
-
             addMessageSignalHandler(signaling, peerConnection);
 
             stream
@@ -64,12 +54,10 @@ export default function Chat() {
         });
 
         peerConnection.onnegotiationneeded = async () => {
-            console.log("onnegotiationneeded");
             await createAndSendOffer(signaling, peerConnection);
         };
 
         peerConnection.onicecandidate = (iceEvent) => {
-            console.log("onicecandidate", iceEvent);
             if (iceEvent && iceEvent.candidate) {
                 const message = JSON.stringify({
                     message_type: MESSAGE_TYPE.CANDIDATE,
@@ -80,7 +68,6 @@ export default function Chat() {
         };
 
         peerConnection.ontrack = (event) => {
-            console.log("ontrack", event);
             console.log(remoteRef);
             if (!remoteRef.current.srcObject) {
                 remoteRef.current.srcObject = event.streams[0];
@@ -136,34 +123,21 @@ export default function Chat() {
         };
     }
 
-    // useEffect(() => {
-    // async function askMediaPermission() {
-    //     const streaming = await window.navigator.mediaDevices.getUserMedia({
-    //         audio: true,
-    //         video: false,
-    //     });
-
-    //         console.log(streaming);
-    //         setStream(streaming);
-    //     }
-
-    //     // askMediaPermission();
-    // }, []);
-
     return (
         <div className={styles.container}>
-            {/* <div className={styles.messageBox}></div> */}
             <button onClick={() => startChat()}>Start Chat</button>
 
-            <video className={styles.selfVideo} ref={selfRef} autoPlay></video>
+            <video
+                className={styles.selfVideo}
+                ref={selfRef}
+                muted
+                autoPlay
+            ></video>
             <video
                 className={styles.remoteVideo}
                 ref={remoteRef}
                 autoPlay
             ></video>
-
-            {/* <audio ref={selfRef} controls autoPlay></audio>
-            <audio ref={remoteRef} controls autoPlay></audio> */}
         </div>
     );
 }
